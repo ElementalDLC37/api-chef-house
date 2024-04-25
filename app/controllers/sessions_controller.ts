@@ -7,7 +7,7 @@ export default class SessionsController {
 
     const user = await User.verifyCredentials(email, password)
 
-    console.log('user')
+    console.log(email, password)
     const token = await User.accessTokens.create(user)
 
     return {
