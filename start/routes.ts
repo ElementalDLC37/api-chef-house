@@ -17,6 +17,8 @@ router.get('/', async () => {
 })
 
 router.resource('/users', UsersController)
+
+router.post('users/verification', '#controllers/sessions_controller.index')
 router.post('users/login', '#controllers/sessions_controller.store')
 
 router.post('/users/:user_id/address', '#controllers/addresses_controller.index')
