@@ -9,7 +9,7 @@ export default class Address extends BaseModel {
   declare id: string
 
   @column()
-  declare user_id: number
+  declare user_id: string
 
   @column()
   declare local_name: string

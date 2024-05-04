@@ -1,22 +1,28 @@
 import Address from '#models/address'
 import { HttpContext } from '@adonisjs/core/http'
+import { DateTime } from 'luxon'
 
 export default class AddressesController {
-  async index({ auth, params, response }: HttpContext) {
-    await auth.use('api').authenticate()
+  async index({ auth, response }: HttpContext) {
+    const user = await auth.use('api').authenticate()
 
-    const address = await Address.findManyBy({ user_id: params.user_id })
+    const addresses = await Address.findManyBy({ user_id: user.id })
 
-    response.json(address)
+    return response.status(200).json(addresses)
   }
 
-  async store({ auth, params, request, response }: HttpContext) {
-    await auth.use('api').authenticate()
-
+  async store({ auth, request, response }: HttpContext) {
+    const user = await auth.use('api').authenticate()
     const data = request.all()
 
-    const address = await Address.create({
-      user_id: params.user_id,
+    const addresses = await Address.findManyBy({ user_id: user.id })
+
+    if (addresses.length >= 5) {
+      return response.status(200).json({ code: 200, text: 'An user can have most 5 addresses!' })
+    }
+
+    await Address.create({
+      user_id: user.id,
       local_name: data.local_name,
       country: data.country,
       state: data.state,
@@ -25,12 +31,38 @@ export default class AddressesController {
       number: data.number,
     })
 
-    return response.status(200).json({ '200': 'User created!', address })
+    return response.status(200).json({ code: 200, text: 'Adress created!' })
   }
 
-  async show({}: HttpContext) {}
+  async update({ auth, request, response }: HttpContext) {
+    const user = await auth.use('api').authenticate()
+    const data = request.all()
 
-  async update({}: HttpContext) {}
+    const adress = await Address.findOrFail(data.adress_id)
+    if (adress.user_id === user.id) {
+      await adress
+        .merge({
+          local_name: data.local_name,
+          country: data.country,
+          state: data.state,
+          city: data.city,
+          adress: data.adress,
+          number: data.number,
+          updatedAt: DateTime.local(),
+        })
+        .save()
+    }
+  }
 
-  async destroy({}: HttpContext) {}
+  async destroy({ auth, request, response }: HttpContext) {
+    const user = await auth.use('api').authenticate()
+    const data = request.all()
+
+    const adress = await Address.findOrFail(data.adress_id)
+    if (adress.user_id === user.id) {
+      await adress.delete()
+    }
+
+    return response.status(200).json({ code: 200, text: 'Adress deleted!' })
+  }
 }
