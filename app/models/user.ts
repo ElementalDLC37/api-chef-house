@@ -3,7 +3,7 @@ import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
 import { BaseModel, beforeCreate, column, hasMany } from '@adonisjs/lucid/orm'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
-import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
+import { AccessToken, DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import { v4 as uuidv4 } from 'uuid'
 import Address from '#models/address'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
@@ -18,7 +18,10 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare id: string
 
   @column()
-  declare name: string
+  declare firstName: string
+
+  @column()
+  declare lastName: string
 
   @column()
   declare email: string
@@ -27,7 +30,7 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare password: string
 
   @column()
-  declare phone: string
+  declare phone: number
 
   @beforeCreate()
   static assignAvatar(user: User) {
@@ -42,6 +45,8 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+
+  currentAccessToken?: AccessToken
 
   static accessTokens = DbAccessTokensProvider.forModel(User, {
     expiresIn: '365 days',

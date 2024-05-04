@@ -27,6 +27,9 @@ export default class Address extends BaseModel {
   declare adress: string
 
   @column()
+  declare complement: string
+
+  @column()
   declare number: number
 
   @beforeCreate()

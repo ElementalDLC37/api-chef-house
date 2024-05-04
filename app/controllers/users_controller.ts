@@ -1,5 +1,7 @@
 import User from '#models/user'
+import { AccessToken } from '@adonisjs/auth/access_tokens'
 import { HttpContext } from '@adonisjs/core/http'
+import { Bouncer } from '@adonisjs/bouncer'
 import { DateTime } from 'luxon'
 
 export default class UsersController {
@@ -12,18 +14,22 @@ export default class UsersController {
   }
 
   async signIn({ request, response }: HttpContext) {
-    let data = request.all()
-    let user = await User.create({
-      name: data.name,
+    const data = request.all()
+
+    await User.create({
+      firstName: data.firstName,
+      lastName: data.lastName,
       email: data.email,
       password: data.password,
       phone: data.phone,
     })
 
+    const user = await User.verifyCredentials(data.email, data.password)
+
     const token = await User.accessTokens.create(user)
 
     return response.status(200).json({
-      type: 'bearer',
+      type: 'Bearer',
       value: token.value!.release(),
     })
   }
@@ -35,7 +41,7 @@ export default class UsersController {
 
     const accessTokens = await User.accessTokens.all(user)
 
-    if (accessTokens.length > 5) {
+    if (accessTokens.length >= 5) {
       const mostOldToken = accessTokens[accessTokens.length - 1]
       await User.accessTokens.delete(user, mostOldToken.identifier)
     }
@@ -43,9 +49,17 @@ export default class UsersController {
     const token = await User.accessTokens.create(user)
 
     return response.status(200).json({
-      type: 'bearer',
+      type: 'Bearer',
       value: token.value!.release(),
     })
+  }
+
+  async logoff({ auth, request, response }: HttpContext) {
+    const user = await auth.use('api').authenticate()
+
+    await User.accessTokens.delete(user, user.currentAccessToken.identifier)
+
+    return response.status(200)
   }
 
   async verifyToken({ auth, response }: HttpContext) {

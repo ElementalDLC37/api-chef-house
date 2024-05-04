@@ -29,12 +29,13 @@ export default class AddressesController {
       city: data.city,
       adress: data.adress,
       number: data.number,
+      complement: data.complement,
     })
 
     return response.status(200).json({ code: 200, text: 'Adress created!' })
   }
 
-  async update({ auth, request, response }: HttpContext) {
+  async update({ auth, request }: HttpContext) {
     const user = await auth.use('api').authenticate()
     const data = request.all()
 

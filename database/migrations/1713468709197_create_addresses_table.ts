@@ -11,6 +11,7 @@ export default class extends BaseSchema {
       table.string('state')
       table.string('city')
       table.string('adress')
+      table.string('complement')
       table.integer('number')
 
       table.integer('user_id').references('id').inTable('users')
